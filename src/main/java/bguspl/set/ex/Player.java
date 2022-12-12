@@ -1,5 +1,7 @@
 package bguspl.set.ex;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.logging.Level;
 
 import bguspl.set.Env;
@@ -51,6 +53,8 @@ public class Player implements Runnable {
      * The current score of the player.
      */
     private int score;
+
+    Queue<Integer> pressedQueue = new LinkedList<>();
 
     /**
      * The class constructor.
@@ -116,7 +120,14 @@ public class Player implements Runnable {
      * @param slot - the slot corresponding to the key pressed.
      */
     public void keyPressed(int slot) {
-        // TODO implement
+
+        if(pressedQueue.size()<3){
+            pressedQueue.add(slot);
+            table.placeToken(id, slot);
+        }
+        // TODO : add wakeup dealer and check if set is valid.
+
+
     }
 
     /**

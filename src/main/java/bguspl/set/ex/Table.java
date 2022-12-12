@@ -108,6 +108,7 @@ public class Table {
         } catch (InterruptedException ignored) {}
 
         // TODO implement
+        env.ui.removeCard(slot);
     }
 
     /**
@@ -117,6 +118,8 @@ public class Table {
      */
     public void placeToken(int player, int slot) {
         // TODO implement
+
+        env.ui.placeToken(player,slot);
     }
 
     /**

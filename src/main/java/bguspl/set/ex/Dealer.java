@@ -5,6 +5,7 @@ import com.google.common.base.Stopwatch;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -118,8 +119,10 @@ public class Dealer implements Runnable {
      */
     private void placeCardsOnTable() {
         Collections.shuffle(deck);
-        for(int i=0; i<12; i++){
-            table.placeCard(deck.indexOf(i), i);
+        System.out.println(deck);
+        for(int i=0; i<12 && deck.size()>0; i++){
+            table.placeCard(deck.get(0), i);
+            deck.remove(0);
         }
     }
 
@@ -145,10 +148,7 @@ public class Dealer implements Runnable {
             lastTime=System.currentTimeMillis();
             timer.decrementAndGet();
             env.ui.setCountdown(timer.get()* 1000L,false);
-
-
         }
-
     }
 
     /**
@@ -156,6 +156,14 @@ public class Dealer implements Runnable {
      */
     private void removeAllCardsFromTable() {
         // TODO implement
+        for (int i = 0; i < 12 ; i++){
+            try{
+                table.removeCard(i);
+            }
+            catch(Exception e ){
+                System.out.println("No card in slot " + i +" to be removed.");
+            }
+        }
     }
 
     /**
