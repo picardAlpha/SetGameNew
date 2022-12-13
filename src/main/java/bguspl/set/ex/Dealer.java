@@ -5,6 +5,7 @@ import org.w3c.dom.ls.LSOutput;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -45,6 +46,7 @@ public class Dealer implements Runnable {
     private final Object notifyDealerKey = new Object();
 
     AtomicInteger timer = new AtomicInteger(60);
+    AtomicLong longTImer ;
     long lastTime ;
 
 
@@ -54,6 +56,8 @@ public class Dealer implements Runnable {
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
 
+        // Initializing long atomic timer
+        longTImer = new AtomicLong(env.config.turnTimeoutMillis);
         //Initialize token list in table
         for(int i=0; i<players.length; i++){
             table.tokensPlaced.add(new ArrayList<>());
@@ -87,9 +91,9 @@ public class Dealer implements Runnable {
             sleepUntilWokenOrTimeout();
             updateTimerDisplay(false);
             removeCardsFromTable();
-            if(timer.get() == 0) {
+            if(longTImer.get() < 1) {
+                longTImer.set(env.config.turnTimeoutMillis);
                 removeAllCardsFromTable();
-                timer.set(60);
                 placeCardsOnTable();
 
             }
@@ -159,10 +163,10 @@ public class Dealer implements Runnable {
      */
     private void updateTimerDisplay(boolean reset) {
         // TODO implement
-        if(System.currentTimeMillis() - lastTime >999){
+        if(System.currentTimeMillis() - lastTime >9){
             lastTime=System.currentTimeMillis();
-            timer.decrementAndGet();
-            env.ui.setCountdown(timer.get()* 1000L,timer.get()<11);
+            longTImer.set(longTImer.get() - 10);
+            env.ui.setCountdown(longTImer.get(),longTImer.get()<10000);
         }
     }
 
@@ -194,7 +198,7 @@ public class Dealer implements Runnable {
         // TODO implement
     }
 
-    public synchronized void notifyDealer(int playerID, Queue<Integer> keysPressed, long timeStamp){
+    public synchronized void notifyDealer(int playerID, Queue<Integer> keysPressed, long timeStamp){ //TODO : Add timestamp check!
 
             System.out.println("DEBUG (Dealer) : Player no "+ playerID +" notified dealer of finished set "+ keysPressed);
 
