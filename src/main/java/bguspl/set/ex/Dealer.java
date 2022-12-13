@@ -1,6 +1,7 @@
 package bguspl.set.ex;
 
 import bguspl.set.Env;
+import org.w3c.dom.ls.LSOutput;
 
 import java.util.Collections;
 import java.util.List;
@@ -84,6 +85,7 @@ public class Dealer implements Runnable {
             updateTimerDisplay(false);
             removeCardsFromTable();
             if(timer.get() == 0) {
+                removeAllCardsFromTable();
                 timer.set(60);
                 placeCardsOnTable();
 
@@ -129,6 +131,7 @@ public class Dealer implements Runnable {
      */
     private void placeCardsOnTable() {
         Collections.shuffle(deck);
+        System.out.println("cards currently in deck : " );
         System.out.println(deck);
         for(int i=0; i<12 && deck.size()>0; i++){
             table.placeCard(deck.remove(0), i);
@@ -167,8 +170,10 @@ public class Dealer implements Runnable {
         // TODO implement
         for (int i = 0; i < 12 ; i++){
             try{
-                table.removeCard(i);
                 deck.add(table.slotToCard[i]);
+                System.out.println("DEBUG: Added card " + table.slotToCard[i] +" back to the deck");
+                table.removeCard(i);
+                System.out.println("removed card from slot " + i);
             }
             catch(Exception e ){
                 System.out.println("No card in slot " + i +" to be removed.");
