@@ -130,18 +130,26 @@ public class Player implements Runnable {
     public void keyPressed(int slot) {
 
         if (pressedQueue.size() < 3) {
-            if (!pressedQueue.contains(slot)) {
+            if (!pressedQueue.contains(slot)) { //Adds Token
                 pressedQueue.add(slot);
+                table.tokensPlaced.get(id).add(slot);
                 table.placeToken(id, slot);
-            } else {
+            } else {// Removes Token
+                table.tokensPlaced.get(id).remove(table.tokensPlaced.get(id).indexOf(slot));
+                pressedQueue.remove(slot);
                 table.removeToken(id, slot);
+
 
             }
         }
         // TODO : add wakeup dealer and check if set is valid.
 
-        if (pressedQueue.size() == 3)
+        if (pressedQueue.size() == 3){
+            table.tokensPlaced.get(id).clear();
             dealer.notifyDealer(id, pressedQueue, System.currentTimeMillis());
+
+
+        }
     }
 
 

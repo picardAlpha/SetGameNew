@@ -2,6 +2,7 @@ package bguspl.set.ex;
 
 import bguspl.set.Env;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +29,8 @@ public class Table {
      * Mapping between a card and the slot it is in (null if none).
      */
     protected final Integer[] cardToSlot; // slot per card (if any)
+
+    public List<List<Integer>> tokensPlaced = new ArrayList<>();
 
     /**
      * Constructor for testing.
@@ -105,7 +108,9 @@ public class Table {
     public void removeCard(int slot) {
         try {
             Thread.sleep(env.config.tableDelayMillis);
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+            System.out.println("Table experience an exception when trying to sleep");
+        }
 
         // TODO implement
         env.ui.removeCard(slot);
@@ -118,8 +123,9 @@ public class Table {
      */
     public void placeToken(int player, int slot) {
         // TODO implement
-
         env.ui.placeToken(player,slot);
+        System.out.println("Table : new tokens list is " +tokensPlaced);
+
     }
 
     /**
@@ -130,8 +136,27 @@ public class Table {
      */
     public boolean removeToken(int player, int slot) {
         // TODO implement
-
         env.ui.removeToken(player, slot);
+        System.out.println("Table : new tokens list is " +tokensPlaced);
         return true;
     }
+
+    public void removeAllTokens(){
+
+        for(int i=0; i<tokensPlaced.size(); i++){
+            for(int j=0; j<tokensPlaced.get(i).size(); j++){
+                removeToken(i,tokensPlaced.get(i).get(j));
+            }
+        }
+        clearTokensPlaced();
+
+
+    }
+
+    private void clearTokensPlaced(){
+        for (List<Integer> tokens : tokensPlaced)
+            tokens.clear();
+    }
 }
+
+

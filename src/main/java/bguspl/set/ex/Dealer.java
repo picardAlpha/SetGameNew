@@ -3,9 +3,7 @@ package bguspl.set.ex;
 import bguspl.set.Env;
 import org.w3c.dom.ls.LSOutput;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -55,6 +53,11 @@ public class Dealer implements Runnable {
         this.table = table;
         this.players = players;
         deck = IntStream.range(0, env.config.deckSize).boxed().collect(Collectors.toList());
+
+        //Initialize token list in table
+        for(int i=0; i<players.length; i++){
+            table.tokensPlaced.add(new ArrayList<>());
+        }
     }
 
     /**
@@ -167,7 +170,7 @@ public class Dealer implements Runnable {
      * Returns all the cards from the table to the deck.
      */
     private void removeAllCardsFromTable() {
-        // TODO implement
+        // TODO add remove tokens
         for (int i = 0; i < 12 ; i++){
             try{
                 deck.add(table.slotToCard[i]);
@@ -179,6 +182,9 @@ public class Dealer implements Runnable {
                 System.out.println("No card in slot " + i +" to be removed.");
             }
         }
+        table.removeAllTokens();
+        for(Player player:players)
+            player.pressedQueue.clear();
     }
 
     /**
