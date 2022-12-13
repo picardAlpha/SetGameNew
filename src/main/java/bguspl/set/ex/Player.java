@@ -55,6 +55,7 @@ public class Player implements Runnable {
     private int score;
 
     Queue<Integer> pressedQueue = new LinkedList<>();
+    Dealer dealer;
 
     /**
      * The class constructor.
@@ -70,6 +71,7 @@ public class Player implements Runnable {
         this.table = table;
         this.id = id;
         this.human = human;
+        this.dealer = dealer;
     }
 
     /**
@@ -127,8 +129,12 @@ public class Player implements Runnable {
         }
         // TODO : add wakeup dealer and check if set is valid.
 
+        if(pressedQueue.size() == 3 )
+            dealer.notifyDealer(id, pressedQueue, System.currentTimeMillis());}
 
-    }
+
+
+
 
     /**
      * Award a point to a player and perform other related actions.
@@ -141,6 +147,8 @@ public class Player implements Runnable {
 
         int ignored = table.countCards(); // this part is just for demonstration in the unit tests
         env.ui.setScore(id, ++score);
+
+        System.out.println("Player " + id +": I got a point!");
     }
 
     /**
@@ -148,6 +156,8 @@ public class Player implements Runnable {
      */
     public void penalty() {
         // TODO implement
+
+        System.out.println("Player " + id +": I got a penalty :(");
     }
 
     public int getScore() {

@@ -1,12 +1,10 @@
 package bguspl.set.ex;
 
 import bguspl.set.Env;
-import com.google.common.base.Stopwatch;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -44,6 +42,8 @@ public class Dealer implements Runnable {
      * The time when the dealer needs to reshuffle the deck due to turn timeout.
      */
     private long reshuffleTime = Long.MAX_VALUE;
+
+    private final Object notifyDealerKey = new Object();
 
     AtomicInteger timer = new AtomicInteger(60);
     long lastTime ;
@@ -104,13 +104,23 @@ public class Dealer implements Runnable {
      * @return true iff the game should be finished.
      */
     private boolean shouldFinish() {
-        return terminate || env.util.findSets(deck, 1).size() == 0;
+        return terminate || env.util.findSets(deck, 1).size() == 0; //TODO: add condition that the set has no sets as well
     }
 
     /**
      * Checks cards should be removed from the table and removes them.
      */
+    private void removeCardsFromTable(int[] cards) {
+        // TODO implement
+
+        for(int i=0; i<3; i++){
+            table.removeCard(table.cardToSlot[cards[i]]);
+            table.placeCard(deck.remove(0),table.cardToSlot[cards[i]] );
+
+        }
+    }
     private void removeCardsFromTable() {
+
         // TODO implement
     }
 
@@ -121,8 +131,7 @@ public class Dealer implements Runnable {
         Collections.shuffle(deck);
         System.out.println(deck);
         for(int i=0; i<12 && deck.size()>0; i++){
-            table.placeCard(deck.get(0), i);
-            deck.remove(0);
+            table.placeCard(deck.remove(0), i);
         }
     }
 
@@ -147,7 +156,7 @@ public class Dealer implements Runnable {
         if(System.currentTimeMillis() - lastTime >999){
             lastTime=System.currentTimeMillis();
             timer.decrementAndGet();
-            env.ui.setCountdown(timer.get()* 1000L,false);
+            env.ui.setCountdown(timer.get()* 1000L,timer.get()<11);
         }
     }
 
@@ -159,6 +168,7 @@ public class Dealer implements Runnable {
         for (int i = 0; i < 12 ; i++){
             try{
                 table.removeCard(i);
+                deck.add(table.slotToCard[i]);
             }
             catch(Exception e ){
                 System.out.println("No card in slot " + i +" to be removed.");
@@ -172,4 +182,63 @@ public class Dealer implements Runnable {
     private void announceWinners() {
         // TODO implement
     }
-}
+
+    public synchronized void notifyDealer(int playerID, Queue<Integer> keysPressed, long timeStamp){
+
+            System.out.println("DEBUG (Dealer) : Player no "+ playerID +" notified dealer of finished set "+ keysPressed);
+
+
+            int[] chosenSlots = convertQueueToSlots(keysPressed);
+            int[] chosenCards = slotsToCards(chosenSlots);
+
+            removeTokens(playerID, chosenSlots);
+
+            if(env.util.testSet(chosenCards)){
+                players[playerID].point();
+                removeCardsFromTable(chosenCards);
+                for(int i=0; i<3 ;i++){
+                    table.placeCard(deck.remove(0),chosenSlots[i]);
+                }
+
+
+            }
+            else
+                players[playerID].penalty();
+
+
+            notifyAll();
+        }
+
+
+
+
+    private void removeTokens (int playerID, int[] slots){
+        for(int slot : slots)
+            table.removeToken(playerID, slot);
+    }
+
+    private int[] convertQueueToSlots(Queue<Integer> keysPressed){
+        int[] slots = new int[3];
+
+        for(int i=0; i<3; i++)
+            slots[i] = keysPressed.remove();
+
+        return slots;
+
+
+
+        }
+    private int[] slotsToCards(int[] slots){
+        int[] cards = new int[3];
+        for(int i=0; i<3; i++)
+            cards[i] = table.slotToCard[slots[i]];
+
+        return cards;
+    }
+
+
+
+    }
+
+
+

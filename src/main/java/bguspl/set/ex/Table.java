@@ -130,6 +130,8 @@ public class Table {
      */
     public boolean removeToken(int player, int slot) {
         // TODO implement
+
+        env.ui.removeToken(player, slot);
         return false;
     }
 }
