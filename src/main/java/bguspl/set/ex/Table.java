@@ -132,6 +132,6 @@ public class Table {
         // TODO implement
 
         env.ui.removeToken(player, slot);
-        return false;
+        return true;
     }
 }

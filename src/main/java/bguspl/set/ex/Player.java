@@ -86,7 +86,10 @@ public class Player implements Runnable {
         while (!terminate) {
             // TODO implement main player loop
         }
-        if (!human) try { aiThread.join(); } catch (InterruptedException ignored) {}
+        if (!human) try {
+            aiThread.join();
+        } catch (InterruptedException ignored) {
+        }
         env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + " terminated.");
     }
 
@@ -101,8 +104,11 @@ public class Player implements Runnable {
             while (!terminate) {
                 // TODO implement player key press simulator
                 try {
-                    synchronized (this) { wait(); }
-                } catch (InterruptedException ignored) {}
+                    synchronized (this) {
+                        wait();
+                    }
+                } catch (InterruptedException ignored) {
+                }
             }
             env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + " terminated.");
         }, "computer-" + id);
@@ -123,14 +129,20 @@ public class Player implements Runnable {
      */
     public void keyPressed(int slot) {
 
-        if(pressedQueue.size()<3){
-            pressedQueue.add(slot);
-            table.placeToken(id, slot);
+        if (pressedQueue.size() < 3) {
+            if (!pressedQueue.contains(slot)) {
+                pressedQueue.add(slot);
+                table.placeToken(id, slot);
+            } else {
+                table.removeToken(id, slot);
+
+            }
         }
         // TODO : add wakeup dealer and check if set is valid.
 
-        if(pressedQueue.size() == 3 )
-            dealer.notifyDealer(id, pressedQueue, System.currentTimeMillis());}
+        if (pressedQueue.size() == 3)
+            dealer.notifyDealer(id, pressedQueue, System.currentTimeMillis());
+    }
 
 
 
