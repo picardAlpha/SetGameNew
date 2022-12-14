@@ -4,6 +4,8 @@ import bguspl.set.Env;
 import org.w3c.dom.ls.LSOutput;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -49,6 +51,10 @@ public class Dealer implements Runnable {
     AtomicLong longTImer ;
     long lastTime ;
 
+    List<Integer> cardsOnTable = new ArrayList<>();
+
+    Thread[] playerThreads ;
+
 
     public Dealer(Env env, Table table, Player[] players) {
         this.env = env;
@@ -62,8 +68,18 @@ public class Dealer implements Runnable {
         for(int i=0; i<players.length; i++){
             table.tokensPlaced.add(new ArrayList<>());
         }
-    }
+        //Initialize player threads
+        playerThreads = new Thread[players.length];
+        for(int i=0; i< players.length; i++){
+            playerThreads[i] = new Thread(players[i]);
+        }
 
+        //starting all players
+        for(Thread thread:playerThreads)
+            thread.start();
+
+
+    }
     /**
      * The dealer thread starts here (main loop for the dealer thread).
      */
@@ -73,9 +89,13 @@ public class Dealer implements Runnable {
         lastTime = System.currentTimeMillis();
         while (!shouldFinish()) {
             placeCardsOnTable();
+
+            //Initialize AI players
+
+
+
             //sleep, update timer display, remove and place new cards.
             timerLoop();
-
             updateTimerDisplay(false);
             removeAllCardsFromTable();
         }
@@ -140,9 +160,14 @@ public class Dealer implements Runnable {
         Collections.shuffle(deck);
         System.out.println("cards currently in deck : " );
         System.out.println(deck);
+        int card;
         for(int i=0; i<12 && deck.size()>0; i++){
-            table.placeCard(deck.remove(0), i);
+            card = deck.remove(0);
+            table.placeCard(card, i);
+            cardsOnTable.add(card);
         }
+        verifyAtLeastOneSetOnTable();
+
     }
 
     /**
@@ -211,9 +236,10 @@ public class Dealer implements Runnable {
             if(env.util.testSet(chosenCards)){
                 players[playerID].point();
                 removeCardsFromTable(chosenCards);
-                for(int i=0; i<3 ;i++){
+                for(int i=0; i<3 && deck.size()>0 ;i++){
                     table.placeCard(deck.remove(0),chosenSlots[i]);
                 }
+                verifyAtLeastOneSetOnTable();
 
 
             }
@@ -249,6 +275,14 @@ public class Dealer implements Runnable {
             cards[i] = table.slotToCard[slots[i]];
 
         return cards;
+    }
+
+    public void verifyAtLeastOneSetOnTable(){
+        if(env.util.findSets(cardsOnTable,0).size()==0) {
+            System.out.println("DEALER : No sets found on the table. Dealing again...");
+            removeAllCardsFromTable();
+            placeCardsOnTable();
+        }
     }
 
 

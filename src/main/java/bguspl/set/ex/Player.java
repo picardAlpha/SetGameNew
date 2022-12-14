@@ -1,7 +1,9 @@
 package bguspl.set.ex;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 import java.util.logging.Level;
 
 import bguspl.set.Env;
@@ -47,7 +49,7 @@ public class Player implements Runnable {
     /**
      * True iff game should be terminated due to an external event.
      */
-    private volatile boolean terminate;
+    private volatile boolean terminate=false;
 
     /**
      * The current score of the player.
@@ -81,6 +83,7 @@ public class Player implements Runnable {
     public void run() {
         playerThread = Thread.currentThread();
         env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + "starting.");
+        System.out.println( "Thread " + Thread.currentThread().getName() + "starting.");
         if (!human) createArtificialIntelligence();
 
         while (!terminate) {
@@ -98,17 +101,37 @@ public class Player implements Runnable {
      * key presses. If the queue of key presses is full, the thread waits until it is not full.
      */
     private void createArtificialIntelligence() {
-        // note: this is a very very smart AI (!)
+        // note: this is a very, very smart AI (!)
         aiThread = new Thread(() -> {
             env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + " starting.");
+            System.out.println("Thread " + Thread.currentThread().getName() + " starting.");
+            // pool of possible slots initialization
+            int[] slots = new int[12];
+            for(int i=0; i<12; i++)
+                slots[i]=i;
+
+            // after randomized tries, the AI will try to place a valid set, if present.
+            int tryNumber = 0;
+            int randomizedTriesToPlaceCorrectSet = randomInRange(2, slots.length);
+
+            // Simulated presses queue
+            Queue<Integer> keysSimulated = new LinkedList<>();
+
+
+
             while (!terminate) {
+
+                keyPressed(slots[randomInRange(0,slots.length)]);
+
+
+
                 // TODO implement player key press simulator
-                try {
-                    synchronized (this) {
-                        wait();
-                    }
-                } catch (InterruptedException ignored) {
-                }
+//                try {
+//                    synchronized (this) {
+//                        wait(10);
+//                    }
+//                } catch (InterruptedException ignored) {
+//                }
             }
             env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + " terminated.");
         }, "computer-" + id);
@@ -183,4 +206,12 @@ public class Player implements Runnable {
     public int getScore() {
         return score;
     }
+
+    private int randomInRange(int min, int max){
+
+        return min + (int) (Math.random() * ((max - min) + 1));
+
+
+    }
+
 }
