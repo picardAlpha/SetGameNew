@@ -117,13 +117,17 @@ public class Player implements Runnable {
             // Simulated presses queue
             Queue<Integer> keysSimulated = new LinkedList<>();
 
+            try{
+                Thread.currentThread().wait(4000);
+            }
+            catch(Exception ignore){}
 
 
             while (!terminate) {
 
-                keyPressed(slots[randomInRange(0,slots.length)]);
-
-
+                try{
+                keyPressed(slots[randomInRange(0,slots.length-1)]);}
+                catch(Exception ignore){}
 
                 // TODO implement player key press simulator
 //                try {

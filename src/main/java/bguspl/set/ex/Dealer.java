@@ -6,6 +6,7 @@ import org.w3c.dom.ls.LSOutput;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -45,6 +46,8 @@ public class Dealer implements Runnable {
      */
     private long reshuffleTime = Long.MAX_VALUE;
 
+    AtomicBoolean[] playerFinished ;
+
     private final Object notifyDealerKey = new Object();
 
     AtomicInteger timer = new AtomicInteger(60);
@@ -73,10 +76,9 @@ public class Dealer implements Runnable {
         for(int i=0; i< players.length; i++){
             playerThreads[i] = new Thread(players[i]);
         }
+        playerFinished= new AtomicBoolean[players.length];
 
-        //starting all players
-        for(Thread thread:playerThreads)
-            thread.start();
+
 
 
     }
@@ -85,14 +87,20 @@ public class Dealer implements Runnable {
      */
     @Override
     public void run() {
+        System.out.println("Dealer Thread : Hello World.");
         env.logger.log(Level.INFO, "Thread " + Thread.currentThread().getName() + " starting.");
         lastTime = System.currentTimeMillis();
+        //starting all players
+        System.out.println("DEALER : Trying to initialize player threads...");
+        for(Thread thread:playerThreads)
+            thread.start();
+
+        Thread test = new Thread(players[2]);
+        test.start();
         while (!shouldFinish()) {
             placeCardsOnTable();
 
             //Initialize AI players
-
-
 
             //sleep, update timer display, remove and place new cards.
             timerLoop();
@@ -144,7 +152,10 @@ public class Dealer implements Runnable {
 
         for(int i=0; i<3; i++){
             table.removeCard(table.cardToSlot[cards[i]]);
-            table.placeCard(deck.remove(0),table.cardToSlot[cards[i]] );
+            table.slotToCard[table.cardToSlot[cards[i]]] = null;
+
+            if(!deck.isEmpty())
+                table.placeCard(deck.remove(0),table.cardToSlot[cards[i]] );
 
         }
     }
@@ -188,10 +199,10 @@ public class Dealer implements Runnable {
      */
     private void updateTimerDisplay(boolean reset) {
         // TODO implement
-        if(System.currentTimeMillis() - lastTime >9){
+        if(System.currentTimeMillis() - lastTime > 9){
             lastTime=System.currentTimeMillis();
             longTImer.set(longTImer.get() - 10);
-            env.ui.setCountdown(longTImer.get(),longTImer.get()<10000);
+            env.ui.setCountdown(longTImer.get(),longTImer.get()<env.config.turnTimeoutWarningMillis);
         }
     }
 
@@ -240,17 +251,11 @@ public class Dealer implements Runnable {
                     table.placeCard(deck.remove(0),chosenSlots[i]);
                 }
                 verifyAtLeastOneSetOnTable();
-
-
             }
             else
                 players[playerID].penalty();
-
-
             notifyAll();
         }
-
-
 
 
     private void removeTokens (int playerID, int[] slots){
@@ -270,9 +275,17 @@ public class Dealer implements Runnable {
 
         }
     private int[] slotsToCards(int[] slots){
+        System.out.println("slotsToCards : Received array is " + Arrays.toString(slots));
+        System.out.println("slotToCard array : " + Arrays.toString(table.slotToCard));
         int[] cards = new int[3];
-        for(int i=0; i<3; i++)
-            cards[i] = table.slotToCard[slots[i]];
+        for(int i=0; i<3; i++) {
+            try {
+                cards[i] = table.slotToCard[slots[i]];
+            } catch (Exception e) {
+                System.out.println("slotToCard array isn't ready");
+
+            }
+        }
 
         return cards;
     }
